@@ -1,0 +1,117 @@
+create database proyecto01;
+use proyecto01;
+
+create table cliente(   
+idcliente serial,
+nombre varchar(45),
+apaterno varchar(45),
+amaterno varchar(45),
+celular bigint,
+fechanacimiento varchar(45),
+correo varchar(70),
+sexo varchar(20),
+primary key(idcliente));
+
+create table auditoria_cliente(
+id serial,
+nombreAnt varchar(45),
+apaternoAnt varchar(45),
+amaternoAnt varchar(45),
+celularAnt bigint,
+fechanacimientoAnt varchar(45),
+correoAnt varchar(70),
+sexoAnt varchar(20),
+nombreNue varchar(45),
+apaternoNue varchar(45),
+amaternoNue varchar(45),
+celularNue bigint,
+fechanacimientoNue varchar(45),
+correoNue varchar(70),
+sexoNue varchar(20),
+usuario varchar(45),
+modificado timestamp,
+proceso varchar(45),
+idcliente int,
+primary key(id));
+
+create or replace function actualizaCliente()
+returns trigger as $Cliente_modifica$
+begin 
+insert into auditoria_cliente(
+nombreAnt,apaternoAnt,amaternoAnt,celularAnt,fechanacimientoAnt,correoAnt,sexoAnt,
+nombreNue,apaternoNue,amaternoNue,celularNue,fechanacimientoNue,correoNue,sexoNue,
+usuario,modificado,proceso,idcliente)
+values(
+old.nombre,old.apaterno,old.amaterno,old.celular,old.fechanacimiento,old.correo,old.sexo,
+new.nombre,new.apaterno,new.amaterno,new.celular,new.fechanacimiento,new.correo,new.sexo,
+current_user,now(),'Modificado',new.idcliente);
+return new;
+end;
+$Cliente_modifica$ language plpgsql;
+
+create trigger modifica_auditoria_cliente
+after update on cliente
+for each row
+execute procedure actualizaCliente();
+
+
+create or replace function insertaCliente()
+returns trigger as $Cliente_crear$
+begin 
+insert into auditoria_cliente(
+nombreNue,apaternoNue,amaternoNue,celularNue,fechanacimientoNue,correoNue,sexoNue,
+usuario,modificado,proceso,idcliente)
+values(
+new.nombre,new.apaterno,new.amaterno,new.celular,new.fechanacimiento,new.correo,new.sexo,
+current_user,now(),'Agregado',new.idcliente);
+return new;
+end;
+$Cliente_crear$ language plpgsql;
+
+create trigger inserta_auditoria_cliente
+after insert on cliente
+for each row
+execute procedure insertaCliente();
+
+
+create or replace function eliminaCliente()
+returns trigger as $Cliente_elimina$
+begin 
+insert into auditoria_cliente(
+nombreAnt,apaternoAnt,amaternoAnt,celularAnt,fechanacimientoAnt,correoAnt,sexoAnt,
+usuario,modificado,proceso,idcliente)
+values(
+old.nombre,old.apaterno,old.amaterno,old.celular,old.fechanacimiento,old.correo,old.sexo,
+current_user,now(),'Eliminado',old.idcliente);
+return new;
+end;
+$Cliente_elimina$ language plpgsql;
+
+create trigger elimina_auditoria_cliente
+after delete on cliente
+for each row
+execute procedure eliminaCliente();
+
+insert into cliente values(1,'Daniela','Cisneros','Gijon',5566227700,'1999-10-14','Lince@hotmail.com','Femenino'),
+(2,'Ruben','Tovar','Jimenez',5689231410,'1999-12-29','ruben@gmail.com','Masculino');
+
+nombre varchar(45),
+apaterno varchar(45),
+amaterno varchar(45),
+celular int,
+fechanacimiento date,
+correo varchar(70),
+sexo varchar(20),
+
+update cliente set nombre='Salvador' where idcliente=2;
+
+delete from cliente where idcliente=2;
+
+insert into cliente(nombre,apaterno,amaterno,celular,fechanacimiento,correo,sexo)values
+('Ruben','Tovar','Jimenez',5689231410,'1999-12-29','ruben@gmail.com','Masculino');
+
+
+
+
+
+
